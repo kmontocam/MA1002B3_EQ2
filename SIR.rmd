@@ -1,0 +1,55 @@
+---
+title: "SIR"
+author: "Kevin Montoya, A01740352"
+date: "11/25/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r cars}
+ # PACKAGES:
+library(deSolve)
+library(reshape2)
+library(ggplot2)
+
+initial_state_values <- c(S = 130000000, 
+                          I = 1, 
+                          R = 0)
+parameters <- c(beta = 0.24, 
+                gamma = 0.07)
+
+times <- seq(from = 0, to = 180, by = 0.1)
+
+sir_model <- function(time, state, parameters) {
+  with(as.list(c(state, parameters)), {
+    N <- S+I+R
+    lambda <- beta * I/N
+    dS <- -lambda * S
+    dI <- lambda * S - gamma * I
+    dR <- gamma * I
+    return(list(c(dS, dI, dR)))
+  })
+}
+# poner la solución del sistema de ecuaciones en forma de un dataframe
+output <- as.data.frame(ode(y = initial_state_values,
+                            times = times,
+                            func = sir_model,
+                            parms = parameters))
+```
+
+
+```{r}
+output_long <- melt(as.data.frame(output), id = "time")
+ggplot(data = output_long,
+       aes(x = time, y = value, colour = variable, group = variable)) +
+  geom_line() +
+  xlab("Tiempo (días)")+
+  ylab("Número de individuos") +
+  labs(colour = "Subconjunto") +
+  theme(legend.position = "bottom")
+```
+
+
